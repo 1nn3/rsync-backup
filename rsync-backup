@@ -1,0 +1,126 @@
+#!/bin/sh
+# Rsync backup
+
+set -e
+
+rsync="$(which rsync)"
+run_parts="$(which run-parts)"
+
+get_config_dir () {
+	local dir=
+	for dir in .rsync-backup ~/.rsync-backup /etc/rsync-backup; do
+		if test -d $dir; then
+			break
+		fi
+	done
+	echo $dir
+}
+
+backup () {
+	# Backup erstellen
+
+	# pre-hooks ausführen
+	if test -d "$config_dir/pre-hooks.d"; then
+		$run_parts -- "$config_dir/pre-hooks.d"
+	fi
+
+	# Daten ins Backup kopieren
+	$rsync $options -avAHSX -Ph --delete --delete-excluded --filter="merge $config_dir/rsync-filter" "$src" "$dest"
+
+	# post-hooks ausführen
+	if test -d "$config_dir/post-hooks.d"; then
+		$run_parts -- "$config_dir/post-hooks.d"
+	fi
+}
+
+usage () {
+	# Usage ausgeben
+
+	cat <<! >&2
+
+Erstellt ein Backup aller Dateien aus --src / in --dest ./
+
+Usage: $0 [--options 'rsync options'] [--src "/"] [--dest "./"] [--filer "path/to/rsync-filter-file"]
+
+Um Rekursion zu vermeiden muss sichergestellt sein, dass --dest vom Backup ausgelassen ist.
+
+--src, -s
+	Quelle. Standardwert ist das Wurzelverzeichnis: /
+
+--dest, -d
+	Ziel. Standardwert ist das Arbeitsverzeichnis: ./
+
+EXAMPLES:
+
+	Backup over ssh:
+		$0 --src host:/ [--dest ./]
+
+	Local backup:
+		$0 [--src </>] [--dest ./]
+!
+}
+
+TEMP=`getopt -o "C:hs:d:o:" --long "config-dir:,help,src:,dest:,options:" -n "$0" -- "$@"`
+
+if [ $? -ne 0 ]; then
+	_usage
+	echo 'Terminating...' >&2
+	exit 1
+fi
+
+# Note the quotes around "$TEMP": they are essential!
+eval set -- "$TEMP"
+unset TEMP
+
+while true; do
+	case "$1" in
+
+		'-h'|'--help')
+			usage
+			shift
+			exit
+		;;
+
+		'-o'|'--options')
+			options="$2"
+			shift 2
+			continue
+		;;
+
+		'-C'|'--config-dir')
+			config_dir="$2"
+			shift 2
+			continue
+		;;
+
+		'-s'|'--src')
+			src="$2"
+			shift 2
+			continue
+		;;
+
+		'-d'|'--dest')
+			dest="$2"
+			shift 2
+			continue
+		;;
+
+		'--')
+			shift
+			break
+		;;
+
+		*)
+			echo 'Internal error!' >&2
+			exit 1
+		;;
+	esac
+done
+
+config_dir="${config_dir:-$(get_config_dir)}"
+dest="${dest:-.}"
+options="${options:-}"
+src="${src:-/}"
+test -d "$config_dir"
+eval backup
+

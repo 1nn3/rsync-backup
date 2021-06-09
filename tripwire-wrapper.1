@@ -1,0 +1,72 @@
+.\" Manpage for tripwire-wrapper by nobody <nobody>
+
+.TH "tripwire-wrapper" "1" "2013-12-04" "nobody" "tripwire wrapper"
+
+.SH NAME
+
+tripwire-wrapper - A wrapper around the Tripwire integrity checker
+
+.SH SYNOPSIS
+
+tripwire-wrapper
+
+.SH DESCRIPTION
+
+A wrapper around the Tripwire integrity checker.
+
+.SH OPTIONS
+
+.SS -h, --help
+
+Shows help options.
+
+.SS -i, --init
+
+Initialization.
+
+	tripwire-wrapper --init -o '-e' # setup with no encryption
+
+.SS -c, --check
+
+Check integrity. Its an interactively test.
+
+.SS -u, --update [twrfile]
+
+The option --update is using twrfile or the last report from the
+tripwire report directory. If no twrfile can be found a temporary will
+be generate.
+
+The report file are updated without prompting.
+
+.SS -o, --options
+
+Additional options.
+
+.SS --edit-pol, --edit-cfg
+
+Policy and Konfiguration Update/Edit.
+
+You have to run --check or --update first! In newer versions it runs
+automaticly.
+
+.SS -C, --config-dir
+
+Konfigurationsverzeichnis. Standardwert ist /etc/tripwire bzw. .tripwire-wrapper
+
+.SS --cronjob
+
+Run tripwire in crontab.
+
+.SS --test
+
+Run tripwire and use the exit code.
+
+.SH FILES
+
+.SS /etc/tripwire, /etc/tripwire-wrapper, ~/.tripwire-wrapper, .tripwire-wrapper
+
+Configuration directory.
+
+.SH SEE ALSO
+
+.BR tripwire(8)

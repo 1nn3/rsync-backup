@@ -1,0 +1,13 @@
+Sehr einfaches Backup mit rsync
+
+Rsync Backup
+
+Sehr einfaches Backup mit rsync umgesetzt.
+
+PS: Amanda, BackupPC und Bacula sind die wohl drei bekanntesten
+Open-Source Backup-Utilities
+
+Tripwire Wrapper
+
+A wrapper around the Tripwire integrity checker
+

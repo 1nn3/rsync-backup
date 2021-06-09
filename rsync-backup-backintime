@@ -1,0 +1,91 @@
+#!/bin/sh
+# Rsync backup backintime
+# JUST A DEMO
+
+set -e
+
+rsync_backup="$(which rsync-backup)"
+
+get_config_dir () {
+	if test -d ".rsync-backup"; then
+		echo ".rsync-backup"
+	else
+		echo "/etc/rsync-backup"
+	fi
+}
+
+backup () {
+	local now="$(date +%Y%m%d-%H%M%S-%N)"
+	$rsync_backup -s "$src" -d "$dest/$now/" -c "$config_dir" -o "$options"
+	ln -nsf "./$now" "$dest/last"
+}
+
+usage () {
+	# Usage ausgeben
+	$rsync_backup --help
+}
+
+TEMP=`getopt -o "h,s:,d:,o:C:" --long "help,src:,dest:,options:config-dir:" -n "$0" -- "$@"`
+
+if [ $? -ne 0 ]; then
+	_usage
+	echo 'Terminating...' >&2
+	exit 1
+fi
+
+# Note the quotes around "$TEMP": they are essential!
+eval set -- "$TEMP"
+unset TEMP
+
+while true; do
+	case "$1" in
+
+		'-h'|'--help')
+			usage
+			shift
+			exit
+		;;
+
+		'-o'|'--options')
+			options="$2"
+			shift 2
+			continue
+		;;
+
+		'-C'|'--config-dir')
+			config_dir="$2"
+			shift 2
+			continue
+		;;
+
+		'-s'|'--src')
+			src="$2"
+			shift 2
+			continue
+		;;
+
+		'-d'|'--dest')
+			dest="$2"
+			shift 2
+			continue
+		;;
+
+		'--')
+			shift
+			break
+		;;
+
+		*)
+			echo 'Internal error!' >&2
+			exit 1
+		;;
+	esac
+done
+
+config_dir="${config_dir:-$(get_config_dir)}"
+dest="${dest:-.}"
+options="--link-dest=../last ${options:-}"
+src="${src:-/}"
+cd "$config_dir"
+backup
+

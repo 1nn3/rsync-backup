@@ -1,0 +1,12 @@
+#!/bin/sh
+# SMART-Werte prüfen und bei kritischen Werten warnen
+
+set -e
+
+smartctl="$(which smartctl)" || smartctl="/usr/sbin/smartctl"
+
+$smartctl --scan-open | cut -d\# -f1 | while read REPLY; do
+	$smartctl $REPLY -H | grep overall-health | grep PASSED >/dev/null \
+		|| echo "$REPLY: Achtung, drohender Defekt der Festplatte!"
+done
+
