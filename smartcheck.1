@@ -1,0 +1,33 @@
+.\" Manpage for smartcheck by user <user@host>
+
+.TH "smartcheck" "1" "2013-12-04" "user" "Rsync backup"
+
+.SH NAME
+
+smartcheck - SMART-Werte prüfen und bei kritischen Werten warnen
+
+.SH SYNOPSIS
+
+.nf
+smartcheck
+
+.SH DESCRIPTION
+
+SMART-Werte prüfen und bei kritischen Werten warnen.
+
+.SH EXAMPLE
+
+.nf
+smartcheck && rsync-backup
+
+.nf
+# infos
+smartctl <device> -i | awk -F ':' '$1=="Device is" || $1=="SMART support is" {printf("%s: %s\n", $1, $2)}'
+
+.nf
+# health check
+smartctl <device> -H
+
+.nf
+# show all values
+smartctl <device> -a
