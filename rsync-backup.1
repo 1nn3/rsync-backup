@@ -1,0 +1,93 @@
+.\" Manpage for rsync-backup by user <user@host>
+
+.TH "rsync-backup" "1" "2013-12-04" "user" "Rsync backup"
+
+.SH NAME
+
+rsync-backup - Very simple backup using Rsync
+
+.SH SYNOPSIS
+
+.nf
+rsync-backup [ -d path/to/dest ]
+
+.SH DESCRIPTION
+
+Erstellt ein Backup aller Dateien aus --src in --dest.  Es wird alles
+ins Backup kopiert, was nicht explizit ausgelassen werden soll.
+
+Um Rekursion zu vermeiden muss sichergestellt sein, dass --dest vom
+Backup ausgelassen ist.
+
+.SH OPTIONS
+
+.SS -h, --help
+
+Shows help options.
+
+.SS -s, --src
+
+Quelle. Standardwert ist das Wurzelverzeichnis: /
+
+.SS -d, --dest
+
+Ziel. Standardwert ist das aktuelle Arbeitsverzeichnis: .
+
+.SS -C, --config-dir
+
+Konfigurationsverzeichnis. Standardwert ist /etc/rsync-backup
+
+.SS --
+
+Weitere Optionen für Rsync anhängen.
+
+.SH EXAMPLES
+
+.SS "Doppeltes Ausführen mittels lockfile verhindern"
+
+.nf
+flock ~/.rsync-backup.lock rsync-backup [options…]
+
+.SS "Festplatten testen"
+
+.nf
+smartcheck && rsync-backup
+
+.SS "Backup over ssh:"
+
+.nf
+rsync-backup --src root@host:/ [--dest ./]
+
+.SS "Local backup:"
+
+.nf
+rsync-backup [--src /] [--dest ./]
+
+.SS "Cronjob:"
+
+.nf
+@daily rsync-backup -d /mnt/Volume/rsync-backup/ -- -q
+
+.SH FILES
+
+.SS rsync-backup
+
+The default name for the backup directory/working directory.
+
+.SS /etc/rsync-backup/, ~/.rsync-backup, .rsync-backup
+
+Configuration directory.
+
+.SS $config_dir/rsync-filter
+
+The file-filtering rules.
+
+.SS $config_dir/{pre,post}-hooks.d
+
+Executables in diesen Verzeichnissen, werden mittels run-parts(8) vor bzw.
+nach dem Kopieren ausgeführt. Bei Fehlern bricht das Backup ab!
+
+.SH SEE ALSO
+
+.BR rsync(1)
+

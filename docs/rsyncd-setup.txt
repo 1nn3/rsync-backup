@@ -1,0 +1,40 @@
+Rsync daemon setup
+ 
+cat <<! > /etc/rsyncd.conf 
+motd file = /etc/rsyncd.motd
+log file = /var/log/rsyncd.log
+pid file = /var/run/rsyncd.pid
+lock file = /var/run/rsync.lock
+hosts allow = 192.168.122.0/24
+transfer logging = true
+log format = %h %o %f %l %b
+use chroot = true
+
+[rsnapshot]
+	path = /srv/rsnapshot-backup
+	comment = Rsync backup (rsnapshot)
+	read only = no
+	list = yes
+	uid = root
+	gid = root
+!
+service rsync restart
+
+Da ein privilegierter Port (873) genutzt wird, muss der Rsync daemon mit Root-Rechten gestartet werden:
+
+	sudo rsync --config=/etc/rsyncd.conf --daemon --no-detach 
+
+Verbindung testen
+
+	rsync -rdt rsync://192.168.122.1
+
+Pull:
+
+	rsync [optionen] rsync://user@192.168.122.1[:PORT][SRC…] [DEST]
+
+Push:
+
+	rsync [optionen] [SRC…] rsync://user@192.168.122.1[:PORT][DEST]
+
+	rsync-backup -d rsync://192.168.122.1/[DEST]
+

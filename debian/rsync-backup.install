@@ -1,0 +1,3 @@
+#rsync-backup smartcheck tripwire-wrapper /usr/bin/
+pre-hooks.d post-hooks.d /etc/rsync-backup/
+rsync-filter /etc/rsync-backup/

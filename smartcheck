@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+# SMART-Werte prüfen und bei kritischen Werten warnen
+
+#set -x
+set -e
+export LC_ALL=C
+export PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:$HOME/.local/bin"
+
+if test "$(id -u)" -ne "0" ; then
+	echo "Are you root?" >&2
+	exit 255
+fi
+
+smartctl="$(command -v smartctl)" || smartctl="/usr/sbin/smartctl"
+
+$smartctl --scan-open | cut -d\# -f1 | while read REPLY; do
+
+	if ! test "$REPLY"; then
+		continue
+	fi
+
+	if ! $smartctl $REPLY -H 2>/dev/null >&2; then
+		echo "$REPLY: Achtung, drohender Defekt der Festplatte!"
+		exit 1
+	fi
+
+done
+
+exit 0

@@ -1,0 +1,84 @@
+FAQ
+
+How to debug? Run sh -x path/to/script for xtrace!
+
+Festplatte mit cryptsetup/LUKS verschlüsseln und mittels Keyfile einhängen
+
+	# Benchmarks ciphers and KDF (key derivation function)
+	# Without parameters, it tries to measure few common configurations
+	cryptsetup benchmark
+
+	# Partitionieren
+	cfdisk <device>
+	blockdev --rereadpt <device>
+	# Verschlüsselung einrichten
+	luksformat -t ext4 /dev/sdb1
+	# Keyfile erstellen und entschlüsseln
+	dd if=/dev/urandom of=/root/sdb1.luksKeyFile bs=1 count=4096
+	cryptsetup luksAddKey /dev/sdb1 /root/sdb1.luksKeyFile
+	# einhängen in fstab(5) und crypttab(5)
+	cat <<! >>/etc/crypttab
+	sdb1_crypt UUID=<insert uuid of /dev/sdb1> /root/sdb1.luksKeyFile luks,discard
+	!
+	cat <<! >>/etc/fstab
+	/dev/mapper/sdb1_crypt /srv ext4 errors=remount-ro 0 1
+	!
+	# set the reserved-blocks-percentage to zero
+	tune2fs -m 0 /dev/mapper/sdb1_crypt
+
+cryptsetup/LUKS Passphrase oder Keyfile ändern
+
+	cryptsetup luksChangeKey <device> [<new key file>] # its interactively
+
+Eine mit cryptsetup/LUKS verschlüsselte Festplatte einhängen
+
+	# einhängen
+	cryptsetup luksOpen /dev/sdb1 sdb1_crypt
+	mount /dev/mapper/sdb1_crypt /mnt
+
+	# aushängen
+	umount /mnt
+	cryptsetup close sdb1_crypt
+
+Die cryptsetup/LUKS-Passphrase ändern
+
+	cryptsetup luksChangeKey /dev/sdb1
+
+Gib zuerst das aktuelles Passwort ein und anschließend das neue Passwort, das bestätigt werden muss.
+
+Wenn man mit unterschiedlichen Netzen/Domains zu tun hat
+
+	cat <<! >>/etc/NetworkManager/conf.d/local.conf
+	[main]
+		hostname-mode=none
+	!
+
+Backup von Indizierung ausschliessen
+
+	touch RSYNC_BACKUP_DIR/.trackerignore
+
+Tripwire-Cronjob deaktivieren
+
+	dpkg-statoverride --add root root 644 /etc/cron.daily/tripwire
+	chmod 644 /etc/cron.daily/tripwire
+
+Mit einer veränderten Priorität ausführen
+
+	nice -n 19 ionice -c 2 -n 7 rsync-backup
+
+Rsync löscht Dateien nicht
+
+	Probiere die rsync Option --ignore-errors
+
+No space left on device
+
+	Probiere die rsync Option --delete-before
+
+Sicherung der Partitiontable
+
+	sfdisk -d /dev/sda > sda-partition-table.txt
+
+Einspielen läßt sich das wieder mit:
+
+	sfdisk /dev/sda < sda-partition-table.txt
+

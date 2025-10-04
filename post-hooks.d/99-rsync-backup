@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+#set -e
+
+# SMART-Werte prüfen und bei kritischen Werten warnen
+devices="$(sed -ne 's#.*\([sh]d[a-zA-Z]\+$\)#/dev/\1#p' /proc/partitions)"
+smartctl="$(which smartctl)" || smartctl="/usr/sbin/smartctl"
+for i in $devices; do
+	$smartctl -H "$i" | grep overall-health | grep PASSED >/dev/null \
+		|| echo "$i: Achtung, drohender Defekt der Festplatte!"
+done
+

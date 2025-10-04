@@ -1,0 +1,46 @@
+MyReadOnly=$(ReadOnly)-m; # read-only files
+                          # -m prevent touch(1) on a file or directory (SPAM)
+MyDynamic=$(Dynamic)-i-l; # read-write files
+MyGrowing=$(Growing)-i+l; # read-write files but only get larger
+                          # -i inode can change on EXT filesystems for files that change size
+                          # -l +l 
+MyDevice=$(Device);       # for device files – in fact a file not attempt to open
+
+
+(rulename = "fs", emailto = "root")
+{
+	/                                -> $(MyReadOnly) (recurse=0);
+	/bin/                            -> $(MyReadOnly);
+	/boot/                           -> $(MyReadOnly);
+	/dev/                            -> $(MyDevice);
+	# following is on a different file system
+	/dev/hugepages/                  -> $(MyDevice);
+	/dev/mqueue/                     -> $(MyDevice);
+	/dev/pts/                        -> $(MyDevice);
+	/dev/shm/                        -> $(MyDevice);
+	/etc/                            -> $(MyReadOnly);
+	/etc/resolv.conf                 -> $(MyDynamic);
+	/etc/resolv.conf.bak             -> $(MyDynamic);
+	/home/                           -> $(MyReadOnly) (recurse=0);
+	/lib/                            -> $(MyReadOnly);
+	/lib64/                          -> $(MyReadOnly);
+	/lost+found/                     -> $(MyReadOnly) (recurse=0);
+	/media/                          -> $(MyReadOnly) (recurse=0);
+	/mnt/                            -> $(MyReadOnly) (recurse=0);
+	/opt/                            -> $(MyReadOnly);
+	/proc/                           -> $(MyReadOnly) (recurse=0);
+	/root/                           -> $(MyReadOnly);
+	/run/                            -> $(MyDynamic);
+	# following is on a different file system
+	/run/lock/                       -> $(MyDynamic);
+	/run/user/                       -> $(MyDynamic) (recurse=0);
+	/sbin/                           -> $(MyReadOnly);
+	/srv/                            -> $(MyReadOnly) (recurse=0);
+	/sys/                            -> $(MyReadOnly) (recurse=0);
+	/tmp/                            -> $(MyDynamic) (recurse=0);
+	/usr/                            -> $(MyReadOnly);
+	/usr/local/                      -> $(MyReadOnly);
+	/var/                            -> $(MyDynamic);
+	/var/tmp/                        -> $(MyDynamic);
+	/var/local/                      -> $(MyReadOnly);
+}

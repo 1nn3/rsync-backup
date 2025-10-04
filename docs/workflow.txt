@@ -1,0 +1,61 @@
+Backup your data
+
+Workflow
+
+	find
+        .
+	./server-backup
+	./server-backup/data
+	./server-backup/Makefile
+	./server-backup/README.txt
+	./server-backup/.rsync-backup
+	./server-backup/.rsync-backup/rsync-filter
+	./server-backup/.tripwire-wrapper
+	./server-backup/.tripwire-wrapper/twcfg.txt
+	./server-backup/.tripwire-wrapper/twpol.txt
+	cat server-backup/Makefile
+	all: check
+	check: rsync_backup
+		@tripwire-wrapper --check
+	test: rsync_backup
+		@tripwire-wrapper --test
+	update: rsync_backup
+		@tripwire-wrapper --update
+	rsync_backup:
+		@rsync-backup --src root@server:/ --dest data -- --chown=$(USER):$(USER)
+
+Checklist
+
+ 1. Integritätscheck und Backup erstellen
+
+ 2. System aktualisieren und Konfiguration vornehmen
+
+ 3. Erneuter Integritätscheck (und Backup) um die Daten für den
+ nächsten Zyklus zu haben
+
+ 4. Lokales Backup erstellen usw.
+
+Restore
+
+UUID ändern/anpassen
+
+	uuidgen # UUID ggf. erstellen
+
+EXT-Partitionen
+
+	tune2fs -U <UUID> <device>
+
+Swap-Partitionen
+
+	swapoff -v <device>
+	mkswap -U <UUID> <device>
+	swapon -v <device>
+
+Verschlüsselte cryptsetup/LUKS Partitionen
+
+	cryptsetup luksUUID <device> --uuid <UUID> 
+
+RAID-Partitionen
+
+	mdadm --assemble <device> --update=uuid --uuid <UUID>
+
