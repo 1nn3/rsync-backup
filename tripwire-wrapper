@@ -1,0 +1,185 @@
+#!/usr/bin/env sh
+# A wrapper around the Tripwire integrity checker
+
+#set -x
+#set -e
+export LC_ALL=C
+export PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:$HOME/.local/bin"
+
+tripwire="$(command -v tripwire)" || tripwire="/usr/sbin/tripwire"
+twadmin="$(command -v twadmin)" || twadmin="/usr/sbin/twadmin"
+
+temp="$(mktemp)"
+trap "rm -f -- '$temp'" 0 1 2 3 15
+
+get_config_dir () {
+	local dir=
+	for dir in .tripwire-wrapper ~/.tripwire-wrapper /etc/tripwire-wrapper /etc/tripwire; do
+		if test -d $dir; then
+			break
+		fi
+	done
+	echo $dir
+}
+
+tw_init () {
+	test -f "$config_dir/$(hostname)-local.key" \
+		|| $twadmin --generate-keys --local-keyfile "$config_dir/$(hostname)-local.key"
+
+	test -f "$config_dir/site.key" \
+		|| $twadmin --generate-keys --site-keyfile "$config_dir/site.key"
+
+	test -f "$config_dir/twcfg.txt" \
+		&& $twadmin --create-cfgfile $tw_args "$config_dir/twcfg.txt"
+
+	test -f "$config_dir/twpol.txt" \
+		&& $twadmin --create-polfile $tw_args "$config_dir/twpol.txt"
+
+	$tripwire --init $tw_args
+}
+
+tw_check () {
+	$tripwire --check --interactive $tw_args --twrfile "$temp"
+}
+
+tw_cronjob () {
+	$tripwire --check --email-report $tw_args --twrfile "$temp"
+}
+
+tw_test () {
+	$tripwire --check --no-tty-output $tw_args --twrfile "$temp"
+}
+
+tw_update () {
+	local twrfile="$1"
+
+	#if test ! -e "$twrfile"; then
+	#	twrfile="$(ls -1 -t /var/lib/tripwire/report/*.twr | head -n 1)"
+	#fi
+
+	if test ! -e "$twrfile"; then
+		tw_test || true # failure, but database must be updated anyway
+		twrfile="$temp"
+	fi
+
+	$tripwire --update --accept-all $tw_args --twrfile "$twrfile"
+}
+
+tw_edit_pol() {
+	tw_check
+
+	test -e "$config_dir/twpol.txt" \
+		|| twprint --print-polfile >"$config_dir/twpol.txt"
+	$EDITOR "$config_dir/twpol.txt"
+	$tripwire --update-policy $tw_args "$config_dir/twpol.txt"
+}
+
+tw_edit_cfg() {
+	test -e "$config_dir/twcfg.txt" \
+		|| twprint --print-cfgfile >"$config_dir/twcfg.txt"
+	$EDITOR "$config_dir/twcfg.txt"
+	$twadmin --create-cfgfile $tw_args --site-keyfile "$config_dir/site.key" "$config_dir/twcfg.txt"
+}
+
+usage () {
+	cat <<! >&2
+Usage: $0 <options…> [-- [additional Tripwire options…]]
+
+For more informations see the tripwire-wrapper(1) and the tripwire(1) manpages.
+!
+}
+
+TEMP=`getopt -o "hicC:u::" --long "config-dir:,help,init,check,update::,cronjob,test,edit-pol,edit-cfg" -n "$0" -- "$@"`
+
+if [ $? -ne 0 ]; then
+	usage
+	echo 'Terminating...' >&2
+	exit 1
+fi
+
+# Note the quotes around "$TEMP": they are essential!
+eval set -- "$TEMP"
+unset TEMP
+
+while true; do
+	case "$1" in
+
+		'-h'|'--help')
+			usage
+			shift
+			exit
+		;;
+
+		'-i'|'--init')
+			command='tw_init'
+			shift
+			continue
+		;;
+
+		'--cronjob')
+			command='tw_cronjob'
+			shift
+			continue
+		;;
+
+		'--test')
+			command='tw_test'
+			shift
+			continue
+		;;
+
+		'-C'|'--config-dir')
+			config_dir="$2"
+			shift 2
+			continue
+		;;
+
+		'-c'|'--check')
+			command='tw_check'
+			shift
+			continue
+		;;
+
+		'-u'|'--update')
+			case "$2" in
+				'')
+					command='tw_update'
+				;;
+				*)
+					command="tw_update \"$2\""
+				;;
+			esac
+			shift 2
+			continue
+		;;
+
+		'--edit-pol')
+			command='tw_edit_pol'
+			shift
+			continue
+		;;
+
+		'--edit-cfg')
+			command='tw_edit_cfg'
+			shift
+			continue
+		;;
+
+		'--')
+			shift
+			break
+		;;
+
+		*)
+			echo 'Internal error!' >&2
+			exit 1
+		;;
+	esac
+done
+
+EDITOR="${EDITOR:-editor}"
+config_dir="${config_dir:-$(get_config_dir)}"
+tw_args="$@ --cfgfile $config_dir/tw.cfg"
+test -d "$config_dir"
+eval $command
+

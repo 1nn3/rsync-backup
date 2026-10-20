@@ -1,0 +1,97 @@
+.\" Manpage for tripwire-wrapper by user <user@host>
+
+.TH "tripwire-wrapper" "1" "2013-12-04" "user" "Rsync backup"
+
+.SH NAME
+
+tripwire-wrapper - A wrapper around the Tripwire integrity checker
+
+.SH SYNOPSIS
+
+.nf
+tripwire-wrapper
+
+.SH DESCRIPTION
+
+A wrapper around the Tripwire integrity checker.
+
+.SH OPTIONS
+
+.SS -h, --help
+
+Shows help options.
+
+.SS -i, --init
+
+Initialization.
+
+.nf
+tripwire-wrapper --init -- -e # setup with no encryption
+
+.SS -c, --check
+
+Check integrity. Its an interactively test.
+
+.SS -u, --update [twrfile]
+
+The option --update is using twrfile or the last report from the
+tripwire report directory. If no twrfile can be found a temporary will
+be generate.
+
+The report file are updated without prompting.
+
+.SS --edit-pol, --edit-cfg
+
+Policy and Configuration Update/Edit.
+
+You have to run --check or --update first! In newer versions it runs
+automaticly.
+
+.SS -C, --config-dir
+
+Konfigurationsverzeichnis. Standardwert s.u.
+
+.SS --cronjob
+
+Run tripwire in crontab.
+
+.SS --test
+
+Run tripwire and use the exit code.
+
+.SS --
+
+Additional options for Tripwire.
+
+.SH EXAMPLES
+
+.SS "Integrity Checking and Database Update:"
+
+.nf
+rsync-backup --check | --update[=twrfile]
+
+The option --update is using a twrfile or the last report from the /var/lib/tripwire/report/ directory.
+
+.SS "Policy Update/Edit:"
+
+.nf
+rsync-backup --edit-pol
+
+.SH FILES
+
+.SS /etc/tripwire, /etc/tripwire-wrapper, ~/.tripwire-wrapper, .tripwire-wrapper
+
+Configuration directory.
+
+.SS $config_dir/twcfg.txt
+
+Tripwire configuration.
+
+.SS $config_dir/twpol.txt
+
+Tripwire policy.
+
+.SH SEE ALSO
+
+.BR tripwire(8)
+

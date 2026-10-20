@@ -1,0 +1,13 @@
+Source: rsync-backup
+Section: net
+Priority: optional
+Maintainer: Steffen Rumberger <inne@sdf-eu.org>
+Build-Depends: debhelper (>= 10.0.0), bash-completion
+Standards-Version: 4.1.4
+
+Package: rsync-backup
+Architecture: all
+Depends: rsync, smartmontools, ${misc:Depends}
+Recommends: debconf-utils, tripwire
+Description: Rsync backup script
+ Very simpel backup using Rsync.

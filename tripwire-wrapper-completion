@@ -1,0 +1,49 @@
+_tripwire_wrapper() 
+{
+	local cur prev opts
+	COMPREPLY=()
+	cur=`_get_cword`
+	prev=`_get_pword`
+
+	case ${cur} in
+		-*)
+			opts="--help --init --check --update --edit-pol --edit-cfg --config-dir --cronjob --test"
+			COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+			return 0
+		;;
+	esac
+
+	case ${prev} in
+		--help)
+			return 0
+		;;
+		--init)
+			return 0
+		;;
+		--check)
+			return 0
+		;;
+		--update)
+			return 0
+		;;
+		--edit-pol)
+			return 0     
+		;;
+		--edit-cfg)
+			return 0     
+		;;
+		--config-dir)
+			_filedir -d
+			return 0
+		;;
+		--cronjob)
+			return 0
+		;;
+		--test)
+			return 0
+		;;
+	esac
+}
+
+complete -F _tripwire_wrapper tripwire-wrapper
+

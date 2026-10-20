@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+
+#set -e
+
+# dbackup/drestore
+#apt list --installed >"$HOME/apt-installed-packages"
+apt-mark showinstall >"$HOME/apt-mark-showinstall"
+apt-mark showhold >"$HOME/apt-mark-showhold"
+apt-mark showmanual >"$HOME/apt-mark-showmanual"
+debconf-get-selections >"$HOME/debconf-selections"
+dpkg --get-selections '*' >"$HOME/dpkg-selections"
+
+# crypsetup
+cryptsetup="$(which cryptsetup)" || cryptsetup="/usr/sbin/cryptsetup"
+partitions="$(sed -ne 's#.*\([sh]d[a-zA-Z0-9]\+$\)#/dev/\1#p' /proc/partitions)"
+for i in $partitions; do
+	$cryptsetup isLuks "$i" || continue
+	filepath="$HOME/$(basename "$i").luksHeaderBackup"
+	rm -f -- "$filepath"
+	$cryptsetup luksHeaderBackup "$i" --header-backup-file "$filepath"
+done
+

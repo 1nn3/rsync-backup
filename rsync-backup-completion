@@ -1,0 +1,33 @@
+_rsync-backup() 
+{
+	local cur prev opts
+	COMPREPLY=()
+	cur=`_get_cword`
+	prev=`_get_pword`
+
+	case ${cur} in
+		-*)
+			opts="--help --config-dir --dest --src"
+			COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+			return 0
+		;;
+	esac
+
+	case ${prev} in
+		--config-dir)
+			_filedir -d
+			return 0
+		;;
+		--dest)
+			_filedir -d
+			return 0
+		;;
+		--src)
+			_filedir -d
+			return 0
+		;;
+	esac
+}
+
+complete -F _rsync-backup rsync-backup
+

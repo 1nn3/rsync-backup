@@ -1,0 +1,2 @@
+rsync-backup: wrong-bug-number-in-closes #nnnn [usr/share/doc/rsync-backup/changelog.gz:3]
+rsync-backup: changelog-is-dh_make-template [usr/share/doc/rsync-backup/changelog.gz:1]
