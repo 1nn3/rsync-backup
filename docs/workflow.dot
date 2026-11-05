@@ -1,0 +1,30 @@
+#!/usr/bin/env xdot
+
+digraph g {
+
+init [shape=box, color=black, label="apt install tripwire\ndpkg-reconfigure tripwire\ntripwire --init"]
+
+init -> check -> violations;
+
+subgraph cluster_integrity_check {
+
+check [shape=box, color=green, label="tripwire --check"]
+mail [shape=oval, color=blue, label="/etc/cron.daily/tripwire erzeugt twrfile (E-Mail)"]
+update [shape=box, color=green, label="tripwire --update"]
+violations [shape=diamond, color=blue, label="Verstöße"]
+
+mail -> update -> violations;
+violations -> check [label="nein"];
+
+}
+
+report_violations [shape=box, color=yellow, label="Handeln/Verstöße entsprechend melden"]
+update_policy [shape=box, color=red, label="Richtlinienaktualisierung\neditor twpol.txt\ntripwire --update-policy twpol.txt"]
+
+violations -> report_violations [label="ja"];
+report_violations -> update_policy;
+report_violations ->  check [style=dotted];
+update_policy -> check [style=dotted];
+
+}
+

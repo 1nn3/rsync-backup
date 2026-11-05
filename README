@@ -1,0 +1,13 @@
+Rsync-backup - sehr infaches Backup mit Rsync umgesetzt
+2026-10-19
+Topics: backup rsync ids rsync-wrapper rsync-backup tripwire
+
+PS: Amanda, BackupPC und Bacula sind die wohl drei bekanntesten
+Open-Source Backup-Utilities
+
+PPS: Rsnapshot ist auch noch eine Lösung die auf Rsync aufbaut
+
+tripwire-wrapper
+
+A wrapper around the Tripwire integrity checker
+
